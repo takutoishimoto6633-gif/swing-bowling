@@ -1,0 +1,166 @@
+<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Swing Bowling v1.1.0</title><style>*{box-sizing:border-box}body{margin:0;background:#a9ddff;font-family:-apple-system,BlinkMacSystemFont,system-ui,sans-serif;color:#173957;text-align:center}header{padding:12px 8px 4px}h1{font-size:23px;margin:0}.sub{font-size:12px;margin:4px}.hud{max-width:530px;margin:8px auto;display:flex;justify-content:space-between;padding:0 14px;gap:10px}.pill{background:#fff;border-radius:16px;padding:9px 15px;box-shadow:0 3px #6aafd2;font-weight:800;text-align:left}.pill b{display:block;font-size:21px}.pill small{font-size:11px}canvas{display:block;width:min(100%,530px);height: min(51vh,430px);min-height:300px;margin:0 auto;background:#79c9ec;touch-action:none}.controls{max-width:530px;margin:auto;padding:12px 14px}.line{display:flex;justify-content:space-between;gap:12px;align-items:center;margin:7px 0;font-weight:700}.line input{flex:1;min-width:0;accent-color:#2768b7}button{font:inherit;cursor:pointer;touch-action:manipulation}.throw{background:#ffd14b;border:0;border-radius:16px;box-shadow:0 5px #b48b22;width:100%;font-size:21px;font-weight:900;color:#183854;padding:15px;margin-top:10px}.throw:disabled{opacity:.5}.actions{display:flex;gap:8px;margin:15px 0}.actions button{flex:1;background:white;border:0;border-radius:12px;padding:11px 5px;color:#24527a;font-weight:750}.status{min-height:36px;font-size:14px;font-weight:700;margin:8px 0}.board,.coach{background:white;max-width:510px;margin:12px auto;padding:13px;border-radius:17px}.board h2,.coach h2{font-size:17px;margin:0 0 10px}.grid{display:grid;grid-template-columns:repeat(5,1fr);gap:5px}.frame{border:1px solid #bcd9ec;background:#edf7ff;border-radius:8px;min-height:65px;padding:4px 1px;font-size:12px}.frame.active{outline:2px solid #2573b9}.frame b{display:block}.roll{min-height:18px}.score{font-weight:900;font-size:14px}.coach{text-align:left}.coach h2{text-align:center}.coach p,.coach details{font-size:13px;line-height:1.6}.coach details{padding:9px;border-top:1px solid #d9eaf7}.coach summary{font-weight:800}.note{font-size:12px;line-height:1.6;padding:0 15px 20px;max-width:530px;margin:auto}#msg{font-weight:900;color:#fff;text-shadow:0 2px 3px #235b8b;font-size:19px}#gameWrap{position:relative;max-width:530px;margin:auto;overflow:hidden}#celebrate{position:absolute;inset:0;pointer-events:none;display:flex;align-items:center;justify-content:center;flex-direction:column;opacity:0;z-index:5}#celebrate.show{animation:celebrate 1.7s ease-out both}#celebrate .big{font-size:clamp(35px,11vw,65px);font-weight:1000;color:#fff;letter-spacing:2px;text-shadow:0 5px 0 #db7324,0 8px 18px #16395c;-webkit-text-stroke:1px #ffb02d}#celebrate .small{font-size:20px;font-weight:900;color:#fff;text-shadow:0 3px 8px #164768}@keyframes celebrate{0%{opacity:0;transform:scale(.4) rotate(-10deg)}17%{opacity:1;transform:scale(1.22) rotate(3deg)}28%{transform:scale(1)}75%{opacity:1}100%{opacity:0}}#confetti{position:absolute;inset:0;pointer-events:none;overflow:hidden}.piece{position:absolute;top:-20px;width:9px;height:15px;opacity:0;animation:fall 1.8s ease-in forwards}@keyframes fall{0%{transform:translateY(-10px) rotate(0);opacity:1}90%{opacity:1}100%{transform:translateY(460px) rotate(670deg);opacity:0}}#resultPanel{display:none;background:#fff;border:3px solid #2b78b8;border-radius:18px;padding:18px;margin:12px auto;max-width:510px}#resultPanel.visible{display:block}#resultPanel strong{font-size:42px;color:#175d9e}#resultPanel button{background:#ffd14b;border:0;border-radius:12px;padding:12px 25px;font-weight:900}#cameraMode{font-size:11px;opacity:.85}</style></head><body><header><h1>🎳 SWING BOWLING</h1><p class="sub">v1.1.0 · 背景と機械の一体化・5レーン・追従カメラ・10フレーム</p></header><div class="hud"><div class="pill"><small>フレーム</small><b id="frame">1 / 10</b><small id="roll">1投目</small></div><div class="pill" style="text-align:right"><small>スコア</small><b id="total">0</b><small id="left">残り10本</small></div></div><div id="gameWrap"><canvas id="game" aria-label="ボウリングレーンとピン"></canvas><div id="celebrate"><div class="big" id="celebrateText">STRIKE!</div><div class="small" id="celebrateSub">すごい！</div></div><div id="confetti"></div></div><div class="controls"><div id="msg">READY!</div><div class="line"><label for="aim">🎯 狙う方向</label><input id="aim" type="range" min="-100" max="100" value="0"><span id="aimValue">中央</span></div><div class="line"><label for="spin">🌀 回転</label><input id="spin" type="range" min="-100" max="100" value="0"><span id="spinValue">0</span></div><div class="line"><label for="power">⚡ 強さ</label><input id="power" type="range" min="35" max="100" value="75"><span id="powerValue">75%</span></div><button class="throw" id="throw">🎳 投げる！</button><p class="status" id="status">ボールを投げてピンに当てよう！</p><div class="actions"><button id="undo">↶ 1投戻す</button><button id="reset">⟳ 新しいゲーム</button></div></div><section class="board"><h2>🏆 スコアボード</h2><div class="grid" id="board"></div></section><section id="resultPanel"><h2>🏆 ゲーム終了！</h2><p>最終スコア</p><strong id="finalScore">0</strong><p id="resultComment"></p><button id="playAgain">もう一度プレイ</button></section><section class="coach"><h2>📚 投球分析＆投げ方講座</h2><details open><summary>📊 直近の投球分析</summary><p id="analysis">まだ投球していないよ。</p><p id="cameraMode">🎥 レーンの横線と矢印が後ろへ流れ、ボールを追いかけるカメラだよ。</p></details><details><summary>🎯 ポケットを狙う</summary><p>右利きなら1番ピンと3番ピンの間、左利きなら1番ピンと2番ピンの間を狙うのが基本。ボールがピンに当たる角度も重要だよ。</p></details><details><summary>🌀 回転と曲がり方</summary><p>ボールの回転とレーンの摩擦が組み合わさると軌道が変わるよ。この試作版では回転量を簡易的な横加速度に変換しているよ。</p></details></section><p class="note">レーンはピンの奥で終了し、ピットと背面壁につながるよ。ピンセッターは背景とスイープバーの視覚演出で、物理判定には影響しないよ。ガター判定と白線は共通のレーン幅で計算。ピンの外側にも余裕を確保。 この版は外部ライブラリ不要の簡易2D衝突シミュレーションを立体風に描画したもの。質量・反発・ピン同士の衝突で結果を決めるけれど、実際の3D剛体物理やピンの回転・転倒を正確に再現するものではないよ。スマホのモーション操作は次の段階で実装予定。</p><script>(()=>{'use strict';const $=id=>document.getElementById(id),c=$('game'),ctx=c.getContext('2d');let W=0,H=0;function resize(){const r=c.getBoundingClientRect();W=Math.max(1,r.width);H=Math.max(1,r.height);c.width=Math.round(W*devicePixelRatio);c.height=Math.round(H*devicePixelRatio);ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0)}addEventListener('resize',resize);resize();const LANE_HALF_WIDTH=1.30;const X=[0,-.31,.31,-.62,0,.62,-.93,-.31,.31,.93];const Y=[16,16.57,16.57,17.14,17.14,17.14,17.71,17.71,17.71,17.71];let cameraY=0,shotMetrics=null,hasPinContact=false;let pins=[],ball=null,phase='ready',frames=Array.from({length:10},()=>[]),fi=0,ri=0,done=false,history=[],shotStart=0,shotKnocked=[],shotStartAlive=10,lastGutter=false,simEnd=0,prevTime=0;function makePins(){pins=X.map((x,i)=>({x,y:Y[i],vx:0,vy:0,r:.125,alive:true,fallen:false,tilt:0,spin:0}))}makePins();function scoreData(){const flat=frames.flat(),res=[];let offset=0,sum=0;for(let f=0;f<10;f++){const a=frames[f];let val=null;if(f===9){if(a.length>=2&&(a[0]+a[1]<10||a.length===3))val=a.reduce((s,n)=>s+n,0)}else if(a[0]===10){if(flat.length>=offset+3)val=10+flat[offset+1]+flat[offset+2]}else if(a.length===2){if(a[0]+a[1]===10){if(flat.length>=offset+3)val=10+flat[offset+2]}else val=a[0]+a[1]}if(val!==null){sum+=val;res.push(sum)}else res.push(null);offset+=a.length}return res}function symbols(a,f){return a.map((n,i)=>{if(n===10&&(i===0||f===9&&(i===1&&a[0]===10||i===2&&(a[1]===10||a[0]+a[1]===10))))return'X';if(i===1&&a[0]!==10&&a[0]+n===10)return'/';if(f===9&&i===2&&a[0]===10&&a[1]+n===10)return'/';return n===0?'-':n}).join(' ')}function ui(){const sc=scoreData();$('board').innerHTML=frames.map((a,i)=>`<div class="frame ${i===fi&&!done?'active':''}"><b>${i+1}F</b><div class="roll">${symbols(a,i)||'·'}</div><div class="score">${sc[i]??'·'}</div></div>`).join('');$('frame').textContent=(done?10:fi+1)+' / 10';$('roll').textContent=done?'終了':(ri+1)+'投目';$('total').textContent=sc.filter(v=>v!==null).slice(-1)[0]??0;$('left').textContent='残り'+pins.filter(p=>p.alive).length+'本';$('throw').disabled=phase!=='ready'||done;$('undo').disabled=phase!=='ready'||history.length===0;$('resultPanel').classList.toggle('visible',done);if(done){const total=sc[9]??sc.filter(v=>v!==null).slice(-1)[0]??0;$('finalScore').textContent=total;$('resultComment').textContent=total>=200?'すばらしいゲーム！':total>=120?'ナイスゲーム！':'次は自己ベストを目指そう！'}$('status').textContent=done?'ゲーム終了！':`${fi+1}フレーム・${ri+1}投目。残り${pins.filter(p=>p.alive).length}本`;}function snap(){return{pins:pins.map(p=>({...p})),frames:frames.map(a=>[...a]),fi,ri,done}}function restore(s){cameraY=0;$('resultPanel').classList.remove('visible');pins=s.pins.map(p=>({...p}));frames=s.frames.map(a=>[...a]);fi=s.fi;ri=s.ri;done=s.done;ball=null;phase='ready';$('msg').textContent='READY!';ui()}function project(x,y){
+// Camera moves along the lane: objects are positioned relative to the camera,
+// rather than stretching the entire lane towards a fixed vanishing point.
+const depth=y-cameraY;
+const near=-1.8,far=18.7;
+const t=Math.max(0,Math.min(1,(depth-near)/(far-near)));
+const p=Math.pow(t,.72);
+const half=W*.47*(1-p)+W*.09*p;
+return {x:W/2+x/LANE_HALF_WIDTH*half,y:H*.98-(H*.86)*p,scale:1.25-1.03*p};
+}function drawPinsetter(){
+ // Overhead pinsetter: suspended ABOVE the standing pins, not behind them.
+ const rear=18.3,front=17.35;
+ const L=project(-1.43,rear),R=project(1.43,rear);
+ const FL=project(-1.43,front),FR=project(1.43,front);
+ const pinScale=project(0,17.71).scale*2.65;
+ const pinHeight=26*pinScale;
+ // The underside sits above the tallest pin with a visible clearance.
+ const underside=Math.min(L.y,R.y,FL.y,FR.y)-pinHeight-11*L.scale;
+ const housingH=Math.max(12,23*L.scale);
+ // Back wall/pit remains behind the pins, below the overhead machine.
+ ctx.fillStyle='#233747';ctx.beginPath();ctx.moveTo(L.x,L.y+8);ctx.lineTo(R.x,R.y+8);ctx.lineTo(R.x,underside+housingH*.1);ctx.lineTo(L.x,underside+housingH*.1);ctx.closePath();ctx.fill();
+ // Side rails hold up the pinsetter at the lane edges.
+ ctx.strokeStyle='#8ea9bb';ctx.lineWidth=Math.max(2,4*L.scale);
+ for(const x of [-1.37,1.37]){const base=project(x,17.1),top=project(x,rear);ctx.beginPath();ctx.moveTo(base.x,base.y-8*base.scale);ctx.lineTo(top.x,underside+housingH*.25);ctx.stroke()}
+ // Large suspended steel housing with a visible bottom face.
+ ctx.fillStyle='#8298a9';ctx.beginPath();ctx.moveTo(L.x,underside-housingH);ctx.lineTo(R.x,underside-housingH);ctx.lineTo(FR.x,underside-housingH*.65);ctx.lineTo(FL.x,underside-housingH*.65);ctx.closePath();ctx.fill();
+ ctx.fillStyle='#c8d7e1';ctx.beginPath();ctx.moveTo(FL.x,underside-housingH*.65);ctx.lineTo(FR.x,underside-housingH*.65);ctx.lineTo(FR.x,underside);ctx.lineTo(FL.x,underside);ctx.closePath();ctx.fill();
+ ctx.fillStyle='#41596c';ctx.fillRect(FL.x+4*L.scale,underside-6*L.scale,Math.max(1,FR.x-FL.x-8*L.scale),3*L.scale);
+ // Hanging grippers stay high enough not to obscure the standing pins.
+ ctx.strokeStyle='#b4c8d6';ctx.lineWidth=Math.max(1,2*L.scale);
+ for(const x of [-.93,-.31,.31,.93]){const q=project(x,17.71);ctx.beginPath();ctx.moveTo(q.x,underside);ctx.lineTo(q.x,underside+5*q.scale);ctx.stroke();ctx.fillStyle='#e2edf4';ctx.fillRect(q.x-4*q.scale,underside+4*q.scale,8*q.scale,3*q.scale)}
+ ctx.fillStyle='#284d6c';ctx.fillRect(L.x+(R.x-L.x)*.3,underside-housingH-4*L.scale,(R.x-L.x)*.4,10*L.scale);
+ ctx.fillStyle='#fff';ctx.font=`bold ${Math.max(6,8*L.scale)}px system-ui`;ctx.textAlign='center';ctx.fillText('SWING',(L.x+R.x)/2,underside-housingH+4*L.scale);
+}
+
+function drawSweep(){
+ // The pinsetter sweep briefly passes in front of the pins after each throw.
+ if(phase!=='result')return;
+ const elapsed=performance.now()-simEnd;
+ if(elapsed<100||elapsed>1100)return;
+ const t=Math.min(1,Math.max(0,(elapsed-100)/700));
+ const y=17.75-1.9*Math.sin(t*Math.PI);
+ const a=project(-1.2,y),b=project(1.2,y),thick=Math.max(4,8*a.scale);
+ ctx.fillStyle='#465e72';ctx.fillRect(a.x,a.y-14*a.scale,b.x-a.x,thick);
+ ctx.fillStyle='#d6e2ea';ctx.fillRect(a.x,a.y-14*a.scale,b.x-a.x,thick*.35);
+ ctx.strokeStyle='#d3e1e9';ctx.lineWidth=Math.max(1,2*a.scale);
+ for(const x of [-1.13,1.13]){const q=project(x,y);ctx.beginPath();ctx.moveTo(q.x,q.y-14*a.scale);ctx.lineTo(q.x,q.y-30*a.scale);ctx.stroke()}
+}
+function drawPin(p){if(!p.alive&&p.fallen)return;let q=project(p.x,p.y),s=q.scale*2.65,dx=p.x-pins[0].x;ctx.save();ctx.translate(q.x,q.y);ctx.rotate(p.tilt);ctx.fillStyle='#1b5a7560';ctx.beginPath();ctx.ellipse(2*s,3*s,8*s,3*s,0,0,7);ctx.fill();ctx.fillStyle='#f6faff';ctx.strokeStyle='#b7d5e6';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(-5*s,0);ctx.bezierCurveTo(-8*s,-8*s,-3*s,-12*s,-2.5*s,-18*s);ctx.bezierCurveTo(-5*s,-23*s,-3*s,-26*s,0,-26*s);ctx.bezierCurveTo(3*s,-26*s,5*s,-23*s,2.5*s,-18*s);ctx.bezierCurveTo(3*s,-12*s,8*s,-8*s,5*s,0);ctx.closePath();ctx.fill();ctx.stroke();ctx.fillStyle='#e74954';ctx.fillRect(-3.4*s,-17*s,6.8*s,2.7*s);ctx.restore()}function drawNeighborLanes(){
+ // Decorative adjacent lanes share the camera perspective, but have no collision physics.
+ for(const lane of [-2,-1,1,2]){
+  const off=lane*LANE_HALF_WIDTH*2.10;
+  const edge=LANE_HALF_WIDTH*.995;
+  const end=18.42,near=cameraY-1.8;
+  const a=project(off-edge,end),b=project(off+edge,end);
+  const c=project(off+edge,near),d=project(off-edge,near);
+  ctx.fillStyle=lane%2===0?'#c68f56':'#d5a369';
+  ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.lineTo(c.x,c.y);ctx.lineTo(d.x,d.y);ctx.closePath();ctx.fill();
+  ctx.strokeStyle='#f8e3b7';ctx.lineWidth=2;
+  for(const x of [-edge,edge]){const p=project(off+x,near),q=project(off+x,end);ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.lineTo(q.x,q.y);ctx.stroke()}
+  ctx.strokeStyle='#835c3e66';ctx.lineWidth=1;
+  for(const x of [-.5,0,.5]){const p=project(off+x,near),q=project(off+x,end);ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.lineTo(q.x,q.y);ctx.stroke()}
+  for(let y=1.2;y<end;y+=1.65){if(y-cameraY<-.8)continue;const p=project(off-edge*.88,y),q=project(off+edge*.88,y);ctx.strokeStyle='#f5d2a050';ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.lineTo(q.x,q.y);ctx.stroke()}
+  // Each lane has its own dark pin pit and overhead pinsetter at the same endpoint.
+  const h=Math.max(12,27*a.scale),top=a.y-Math.max(24,67*a.scale);
+  ctx.fillStyle='#1b303d';ctx.fillRect(a.x,top,b.x-a.x,a.y-top);
+  ctx.fillStyle='#728d9f';ctx.fillRect(a.x,top-17*a.scale,b.x-a.x,17*a.scale);
+  ctx.fillStyle='#c3d4df';ctx.fillRect(a.x,top-3*a.scale,b.x-a.x,5*a.scale);
+  ctx.fillStyle='#344f62';ctx.fillRect(a.x+(b.x-a.x)*.2,top-15*a.scale,(b.x-a.x)*.6,6*a.scale);
+  // Stationary neighboring pins add depth; only the middle lane is playable.
+  const rows=[[0,16],[-.31,16.57],[.31,16.57],[-.62,17.14],[0,17.14],[.62,17.14],[-.93,17.71],[-.31,17.71],[.31,17.71],[.93,17.71]];
+  for(const [x,y] of rows){const q=project(off+x,y),r=Math.max(1.1,4.6*q.scale);ctx.fillStyle='#34485755';ctx.beginPath();ctx.ellipse(q.x+1,q.y,r*.8,r*.35,0,0,7);ctx.fill();ctx.fillStyle='#fff9ee';ctx.beginPath();ctx.ellipse(q.x,q.y-r*1.5,r*.62,r*1.6,0,0,7);ctx.fill();ctx.fillStyle='#d94245';ctx.fillRect(q.x-r*.5,q.y-r*2.05,r,Math.max(1,r*.22))}
+ }
+}
+function drawBowlingFascia(){
+ // Continuous decorative fascia above all five pin decks, inspired by real bowling centers.
+ // It sits at the physical end of the lanes, not in front of the bowling ball.
+ const laneStep=LANE_HALF_WIDTH*2.10;
+ const left=project(-2.5*laneStep,18.45),right=project(2.5*laneStep,18.45);
+ const x0=left.x,x1=right.x,w=x1-x0;
+ const scale=Math.max(.2,left.scale);
+ const bottom=left.y-Math.max(29,84*scale);
+ const height=Math.max(26,64*scale);
+ // Solid dark header and the bright stripe found on real alley masking units.
+ ctx.fillStyle='#122f4c';ctx.fillRect(x0,bottom-height,w,height);
+ ctx.fillStyle='#f5ca28';ctx.fillRect(x0,bottom-height,w,Math.max(5,11*scale));
+ ctx.fillStyle='#284f70';ctx.fillRect(x0,bottom-height+Math.max(5,11*scale),w,Math.max(3,7*scale));
+ // Connected illustrated panels, one for each lane. Decorative, not gameplay pins.
+ for(let lane=-2;lane<=2;lane++){
+  const cx=project(lane*laneStep,18.45).x;
+  const panelW=Math.abs(project(lane*laneStep+LANE_HALF_WIDTH*.92,18.45).x-project(lane*laneStep-LANE_HALF_WIDTH*.92,18.45).x);
+  const ph=Math.max(14,33*scale),py=bottom-ph-2*scale;
+  ctx.fillStyle=lane%2===0?'#20566c':'#275d73';
+  ctx.fillRect(cx-panelW/2,py,panelW,ph);
+  ctx.strokeStyle='#80a6ac';ctx.lineWidth=Math.max(1,1.4*scale);
+  ctx.strokeRect(cx-panelW/2,py,panelW,ph);
+  ctx.save();ctx.translate(cx,py+ph*.53);
+  // Retro bowling art: central bowling ball with three holes and two stylized pins.
+  const r=Math.max(2,Math.min(panelW*.12,8*scale));
+  ctx.fillStyle='#e8a943';ctx.beginPath();ctx.arc(0,0,r,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#18364e';for(const [hx,hy] of [[-.25,-.24],[.27,-.22],[0,.25]]){ctx.beginPath();ctx.arc(hx*r,hy*r,Math.max(.7,r*.13),0,Math.PI*2);ctx.fill()}
+  for(const side of [-1,1]){
+   const px=side*panelW*.26;
+   ctx.fillStyle='#f8e9d2';ctx.beginPath();ctx.moveTo(px-2.2*scale,7*scale);ctx.quadraticCurveTo(px-3.4*scale,-2*scale,px-1.5*scale,-5*scale);ctx.quadraticCurveTo(px-2.5*scale,-10*scale,px,-10*scale);ctx.quadraticCurveTo(px+2.5*scale,-10*scale,px+1.5*scale,-5*scale);ctx.quadraticCurveTo(px+3.4*scale,-2*scale,px+2.2*scale,7*scale);ctx.closePath();ctx.fill();
+   ctx.strokeStyle='#df5c57';ctx.lineWidth=Math.max(1,1.5*scale);ctx.beginPath();ctx.moveTo(px-1.8*scale,-4*scale);ctx.lineTo(px+1.8*scale,-4*scale);ctx.stroke();
+  }
+  ctx.restore();
+ }
+ // Continuous lower trim visually joins the individual pinsetter housings.
+ ctx.fillStyle='#839ba7';ctx.fillRect(x0,bottom-3*scale,w,Math.max(2,4*scale));
+}
+function draw(){const target=(ball&&phase==='rolling')?Math.min(11.8,Math.max(0,ball.y-2.3)):0;cameraY+=(target-cameraY)*.12;ctx.clearRect(0,0,W,H);let sky=ctx.createLinearGradient(0,0,0,H);sky.addColorStop(0,'#1b324d');sky.addColorStop(.32,'#304b64');sky.addColorStop(.36,'#46576a');sky.addColorStop(1,'#354958');ctx.fillStyle=sky;ctx.fillRect(0,0,W,H);
+// One dark, continuous backdrop behind the real pinsetter structure.
+// No extra wall panels, repeated yellow bands or screen-wide perspective wall.
+ctx.fillStyle='#142436';ctx.fillRect(0,0,W,H);
+// The upper ceiling stays understated so the fascia is the only focal point.
+const ceilingBack=project(0,18.45);
+const ceilingLine=ceilingBack.y-205*ceilingBack.scale;
+ctx.fillStyle='#1d3044';ctx.fillRect(0,0,W,Math.max(0,ceilingLine));
+ctx.strokeStyle='#31495d';ctx.lineWidth=2;
+for(const y of [5,10,15]){
+ if(y<=cameraY)continue;
+ const q=project(0,y),cy=q.y-205*q.scale;
+ if(cy>=0&&cy<H){ctx.beginPath();ctx.moveTo(0,cy);ctx.lineTo(W,cy);ctx.stroke()}
+}
+drawNeighborLanes();ctx.fillStyle='#8a5a33';ctx.beginPath();ctx.moveTo(project(-LANE_HALF_WIDTH-.14,18.42).x,project(0,18.42).y);ctx.lineTo(project(LANE_HALF_WIDTH+.14,18.42).x,project(0,18.42).y);ctx.lineTo(project(LANE_HALF_WIDTH+.14,cameraY-1.8).x,H);ctx.lineTo(project(-LANE_HALF_WIDTH-.14,cameraY-1.8).x,H);ctx.closePath();ctx.fill();ctx.fillStyle='#e9b978';ctx.beginPath();ctx.moveTo(project(-LANE_HALF_WIDTH,18.42).x,project(0,18.42).y);ctx.lineTo(project(LANE_HALF_WIDTH,18.42).x,project(0,18.42).y);ctx.lineTo(project(LANE_HALF_WIDTH,cameraY-1.8).x,H);ctx.lineTo(project(-LANE_HALF_WIDTH,cameraY-1.8).x,H);ctx.closePath();ctx.fill();ctx.strokeStyle='#d4a263';ctx.lineWidth=1;for(let i=-4;i<=4;i++){let q=project(i*.22,cameraY-1.8),r=project(i*.22,18.42);ctx.beginPath();ctx.moveTo(q.x,q.y);ctx.lineTo(r.x,r.y);ctx.stroke()}ctx.strokeStyle='#fff8';ctx.lineWidth=2;for(let x of [-LANE_HALF_WIDTH,LANE_HALF_WIDTH]){let a=project(x,cameraY-1.8),b=project(x,18.42);ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke()}// World-fixed lane markers scroll past the ball as the camera travels.
+for(let y=0.7;y<18.42;y+=1.15){
+ const depth=y-cameraY;
+ if(depth<-.9||y>18.42)continue;
+ const a=project(-LANE_HALF_WIDTH*.96,y),b=project(LANE_HALF_WIDTH*.96,y);
+ ctx.strokeStyle=(Math.round(y*10)%2===0)?'#fff6':'#81532955';
+ ctx.lineWidth=Math.max(1,2.8*a.scale);
+ ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();
+}
+// Lane arrows at fixed physical distances, not attached to the camera.
+for(const y of [5.2,9.6,13.8]){
+ if(y-cameraY<-.6||y>18.42)continue;
+ for(const x of [-.7,0,.7]){
+ const q=project(x,y),z=Math.max(2,6*q.scale);
+ ctx.fillStyle='#70513c99';ctx.beginPath();ctx.moveTo(q.x,q.y-z);
+ ctx.lineTo(q.x-z*.65,q.y+z*.7);ctx.lineTo(q.x+z*.65,q.y+z*.7);ctx.closePath();ctx.fill();
+ }
+}
+// Physical end of the lane: dark pin pit and backstop. No floor extends behind this point.
+{const eL=project(-LANE_HALF_WIDTH-.14,18.42),eR=project(LANE_HALF_WIDTH+.14,18.42);
+ const wallTop=Math.max(0,eL.y-Math.max(30,80*eL.scale));
+ ctx.fillStyle='#142c3b';ctx.beginPath();ctx.moveTo(eL.x,eL.y);ctx.lineTo(eR.x,eR.y);ctx.lineTo(eR.x,wallTop);ctx.lineTo(eL.x,wallTop);ctx.closePath();ctx.fill();
+ ctx.fillStyle='#233d4c';ctx.fillRect(eL.x,Math.max(wallTop,eL.y-8*eL.scale),eR.x-eL.x,Math.max(3,8*eL.scale));
+ ctx.strokeStyle='#a7bdc8';ctx.lineWidth=Math.max(2,3*eL.scale);ctx.beginPath();ctx.moveTo(eL.x,wallTop);ctx.lineTo(eR.x,wallTop);ctx.stroke();}
+drawPinsetter();drawBowlingFascia();for(let p of [...pins].sort((a,b)=>b.y-a.y))drawPin(p);drawSweep();if(ball&&ball.y>=0&&ball.y<=19){let q=project(ball.x,ball.y),r=Math.max(4,22*q.scale);ctx.fillStyle='#103f6b55';ctx.beginPath();ctx.ellipse(q.x+3,q.y+3,r*.9,r*.32,0,0,7);ctx.fill();let g=ctx.createRadialGradient(q.x-r*.35,q.y-r*.4,1,q.x,q.y,r);g.addColorStop(0,'#a9c8ff');g.addColorStop(.5,'#376acb');g.addColorStop(1,'#102c69');ctx.fillStyle=g;ctx.beginPath();ctx.arc(q.x,q.y-r*.48,r,0,Math.PI*2);ctx.fill();ctx.fillStyle='#0c2555';for(let [dx,dy] of [[-.15,-.65],[.12,-.5],[-.1,-.35]]){ctx.beginPath();ctx.ellipse(q.x+r*dx,q.y+r*dy,r*.13,r*.1,0,0,7);ctx.fill()}}}function collision(a,b,rest){let dx=b.x-a.x,dy=b.y-a.y,d=Math.hypot(dx,dy);let min=a.r+b.r;if(d>=min)return false;if(d<.00001){dx=.001;dy=.001;d=Math.hypot(dx,dy)}let nx=dx/d,ny=dy/d,over=min-d,ma=a.mass||1,mb=b.mass||1;const wa=mb/(ma+mb),wb=ma/(ma+mb);a.x-=nx*over*wa;b.x+=nx*over*wb;a.y-=ny*over*wa;b.y+=ny*over*wb;let v=(b.vx-a.vx)*nx+(b.vy-a.vy)*ny;if(v<0){let impulse=-(1+rest)*v/(1/ma+1/mb);a.vx-=impulse*nx/ma;a.vy-=impulse*ny/ma;b.vx+=impulse*nx/mb;b.vy+=impulse*ny/mb}return true}function step(dt){
+ if(phase!=='rolling'&&phase!=='scatter')return;
+ const count=Math.max(1,Math.ceil(dt/.008)),h=dt/count;
+ for(let k=0;k<count;k++){
+  if(ball){if(shotMetrics){shotMetrics.maxY=Math.max(shotMetrics.maxY,ball.y);shotMetrics.maxX=Math.max(shotMetrics.maxX,Math.abs(ball.x));shotMetrics.endX=ball.x;}ball.vx+=ball.spin*.11*h;ball.x+=ball.vx*h;ball.y+=ball.vy*h;ball.vx*=Math.pow(.985,h*60);ball.vy*=Math.pow(.998,h*60);if(Math.abs(ball.x)>LANE_HALF_WIDTH && !hasPinContact){lastGutter=true;ball=null}}
+  for(const p of pins){if(!p.alive||p.fallen)continue;p.x+=p.vx*h;p.y+=p.vy*h;p.vx*=Math.pow(.958,h*60);p.vy*=Math.pow(.958,h*60);if(p.hit)p.tilt=Math.max(-1.4,Math.min(1.4,p.vx*.24+p.vy*.12));if(ball&&collision(ball,p,.42)){p.hit=true;hasPinContact=true;}}
+  for(let i=0;i<pins.length;i++)for(let j=i+1;j<pins.length;j++){const a=pins[i],b=pins[j];if(a.alive&&!a.fallen&&b.alive&&!b.fallen&&collision(a,b,.46)){a.hit=true;b.hit=true}}
+  for(const p of pins){if(p.hit&&!p.knocked&&Math.hypot(p.vx,p.vy)>.45){p.knocked=true;p.r=.17;p.mass=.55;p.tilt=p.vx>=0?1.3:-1.3;}if(p.knocked&&Math.hypot(p.vx,p.vy)<.14){p.alive=false;p.fallen=true}}
+  if(ball&&ball.y>19.1)ball=null;
+ }
+ if(performance.now()-shotStart>4400||(!ball&&performance.now()-shotStart>2100))finishShot();
+}
+function showCelebration(kind){const el=$('celebrate'),txt=$('celebrateText'),sub=$('celebrateSub'),conf=$('confetti');el.classList.remove('show');void el.offsetWidth;txt.textContent=kind==='strike'?'STRIKE!':kind==='spare'?'SPARE!':'NICE SHOT!';sub.textContent=kind==='strike'?'🎳 全ピン撃破！':kind==='spare'?'✨ 全部倒した！':'🎉 ナイス！';el.classList.add('show');conf.innerHTML='';for(let i=0;i<(kind==='strike'?34:kind==='spare'?22:10);i++){const e=document.createElement('span');e.className='piece';e.style.left=(Math.random()*100)+'%';e.style.background=['#ffcf36','#ff6784','#5bcbf5','#8e6af5','#62df92'][i%5];e.style.animationDelay=(Math.random()*.45)+'s';conf.appendChild(e)}setTimeout(()=>{el.classList.remove('show');conf.innerHTML=''},2100)}function finishShot(){if(phase==='ready')return;phase='result';simEnd=performance.now();// Count every pin that fell during this throw, including pins already settled.
+// Merely touching a pin (hit=true) does not mean it has fallen.
+for(const p of pins){if(p.alive&&p.knocked){p.alive=false;p.fallen=true}}
+const remaining=pins.filter(p=>p.alive).length;
+const n=Math.max(0,Math.min(shotStartAlive,shotStartAlive-remaining));const f=fi,r=ri,prev=frames[fi].slice();frames[fi].push(n);let strike=r===0&&n===10,spare=r>0&&n>0&&prev[0]!==10&&prev[0]+n===10;$('msg').textContent=lastGutter&&n===0?'GUTTER!':strike?'STRIKE! 🎉':spare?'SPARE! ✨':n===0?'MISS!':n+' PINS!';if(strike||spare||n>=7)showCelebration(strike?'strike':spare?'spare':'nice');$('analysis').textContent=`${f+1}フレーム ${r+1}投目｜倒したピン：${n}本｜初速：約${shotMetrics.speed.toFixed(1)}m/s｜投球角度：約${shotMetrics.angle.toFixed(1)}°｜回転設定：${shotMetrics.spin>0?'右':shotMetrics.spin<0?'左':'なし'} ${Math.abs(shotMetrics.spin*100).toFixed(0)}%｜最大横ずれ：約${shotMetrics.maxX.toFixed(2)}m｜進んだ距離：約${shotMetrics.maxY.toFixed(1)}m。${lastGutter&&n===0?'ガター判定あり。':''} ※速度・角度はゲーム内の簡易2Dモデルの数値。`;if(fi<9){if(strike||ri===1){fi++;ri=0;setTimeout(makePins,1150)}else ri=1}else{const a=frames[9];if(a.length===1){ri=1;if(a[0]===10)setTimeout(makePins,1150)}else if(a.length===2){if(a[0]===10){ri=2;if(a[1]===10)setTimeout(makePins,1150)}else if(a[0]+a[1]===10){ri=2;setTimeout(makePins,1150)}else done=true}else done=true}ui();setTimeout(()=>{ball=null;phase='ready';if(!done)$('msg').textContent='READY!';ui()},1300)}function tick(t){let dt=Math.min(.04,(t-(prevTime||t))/1000);prevTime=t;step(dt);draw();requestAnimationFrame(tick)}requestAnimationFrame(tick);$('throw').onclick=()=>{if(phase!=='ready'||done)return;history.push(snap());lastGutter=false;hasPinContact=false;shotKnocked=[];shotStartAlive=pins.filter(p=>p.alive).length;for(const p of pins){if(p.alive){p.hit=false;p.knocked=false;p.vx=0;p.vy=0;p.tilt=0}}ball={x:0,y:0,vx:Number($('aim').value)/100*1.65,vy:11+Number($('power').value)/100*7,spin:Number($('spin').value)/100,r:.25,mass:6};shotMetrics={speed:Math.hypot(ball.vx,ball.vy),angle:Math.atan2(ball.vx,ball.vy)*180/Math.PI,spin:ball.spin,maxY:0,maxX:0,endX:0};shotStart=performance.now();phase='rolling';$('msg').textContent='ROLLING...';ui()};$('undo').onclick=()=>{if(phase!=='ready'||!history.length)return;restore(history.pop())};$('playAgain').onclick=()=>{if(phase==='ready'){$('reset').click()}};$('reset').onclick=()=>{if(phase!=='ready'||!confirm('新しいゲームを始める？'))return;frames=Array.from({length:10},()=>[]);fi=0;ri=0;done=false;history=[];ball=null;cameraY=0;makePins();$('resultPanel').classList.remove('visible');$('msg').textContent='READY!';$('analysis').textContent='まだ投球していないよ。';ui()};for(let [id,out,format] of [['aim','aimValue',v=>v==0?'中央':v<0?'左 '+Math.abs(v):'右 '+v],['spin','spinValue',v=>v==0?'0':v<0?'左 '+Math.abs(v):'右 '+v],['power','powerValue',v=>v+'%']]){$(id).oninput=()=>$(out).textContent=format(Number($(id).value))}ui()})();</script></body></html>
